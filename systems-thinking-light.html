@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Systems Thinking — Anthony Prajogo</title>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #F4F1EA; --surface: #FAF8F2; --ink: #1E1C14;
+    --ink-mid: #6E6A58; --ink-light: #A09A88; --rule: #DDD8CC;
+    --green: #5C9E48; --green-pale: #EBF5E6; --green-mid: rgba(92,158,72,0.12);
+    --teal: #3A5C6A; --mono: 'DM Mono', monospace;
+  }
+  body { background: var(--bg); color: var(--ink); font-family: 'DM Sans', sans-serif; font-weight: 300; min-height: 100vh; }
+
+  /* ── STANDARD HEADER ── */
+  header { padding: 40px 56px 32px; border-bottom: 2px solid var(--ink); }
+  h1 { font-family: 'Libre Baskerville', serif; font-size: 2.6rem; font-weight: 400; line-height: 1.1; max-width: 680px; margin-bottom: 10px; }
+  h1 em { font-style: italic; color: var(--green); }
+  .subtitle { font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 300; color: var(--ink-mid); line-height: 1.65; max-width: 560px; margin-bottom: 20px; }
+  .author-block { display: flex; align-items: center; gap: 12px; }
+  .author-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--green); display: flex; align-items: center; justify-content: center; font-family: 'DM Mono', monospace; font-size: 0.68rem; font-weight: 400; color: white; flex-shrink: 0; letter-spacing: 0.03em; }
+  .author-info { display: flex; flex-direction: column; gap: 1px; }
+  .author-name { font-family: 'DM Sans', sans-serif; font-size: 0.88rem; font-weight: 500; color: var(--ink); line-height: 1.3; }
+  .author-date { font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 300; color: var(--ink-mid); line-height: 1.3; }
+
+  /* ── BODY ── */
+  .concepts-section { padding: 0 56px 56px; }
+  .section-header-row { display: flex; align-items: center; gap: 20px; padding: 32px 0 24px; }
+  .section-header-text { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-light); white-space: nowrap; }
+  .section-header-line { flex: 1; height: 1px; background: var(--rule); }
+
+  /* ── DIM-CARD STYLE TILES (business atlas pattern) ── */
+  .concepts-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5px; background: var(--rule); border: 1px solid var(--rule); }
+
+  .concept-card {
+    background: var(--surface);
+    padding: 2rem 1.8rem;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  /* Left vertical green bar — animates in from bottom */
+  .concept-card::after {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--green);
+    transform: scaleY(0);
+    transition: transform 0.2s ease;
+    transform-origin: bottom;
+  }
+  .concept-card:hover::after,
+  .concept-card.open::after { transform: scaleY(1); }
+  .concept-card:hover,
+  .concept-card.open { background: white; }
+
+  .card-num { font-family: var(--mono); font-size: 0.62rem; color: var(--green); letter-spacing: 0.15em; margin-bottom: 0.6rem; }
+  .card-name { font-family: 'Libre Baskerville', serif; font-size: 1.15rem; font-weight: 700; margin-bottom: 0.4rem; line-height: 1.2; }
+  .card-tagline { font-size: 0.8rem; color: var(--ink-mid); font-style: italic; margin-bottom: 1rem; line-height: 1.5; }
+
+  /* + / × toggle */
+  .card-toggle {
+    position: absolute;
+    top: 1.8rem; right: 1.8rem;
+    font-family: var(--mono);
+    font-size: 1.2rem;
+    color: var(--ink-light);
+    transition: transform 0.22s ease, color 0.15s;
+    line-height: 1;
+    user-select: none;
+  }
+  .concept-card.open .card-toggle { transform: rotate(45deg); color: var(--green); }
+
+  /* Expand body */
+  .card-body {
+    font-size: 0.85rem;
+    line-height: 1.75;
+    color: var(--ink-mid);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+  .concept-card.open .card-body { max-height: 500px; }
+
+  .card-example {
+    margin-top: 1.2rem;
+    padding: 1rem 1.2rem;
+    background: var(--green-mid);
+    border-left: 3px solid var(--green);
+    font-family: 'Libre Baskerville', serif;
+    font-size: 0.85rem;
+    line-height: 1.7;
+    color: var(--ink-mid);
+    font-style: italic;
+  }
+  .card-example-label {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--green);
+    margin-bottom: 0.5rem;
+    font-style: normal;
+    display: block;
+  }
+
+  /* ── TAKEAWAY ── */
+  .takeaway { margin-top: 2rem; padding: 20px 24px; border: 1px solid var(--rule); background: var(--surface); display: flex; align-items: flex-start; gap: 14px; }
+  .takeaway-icon { font-size: 14px; color: var(--teal); flex-shrink: 0; margin-top: 2px; }
+  .takeaway-text { font-size: 0.85rem; line-height: 1.7; color: var(--ink-mid); }
+  .takeaway-text strong { color: var(--ink); font-weight: 500; }
+
+  footer { background: var(--ink); padding: 18px 56px; display: flex; justify-content: space-between; align-items: center; }
+  .footer-text { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(250,248,242,0.3); }
+
+  @media (max-width: 800px) {
+    header, .concepts-section, footer { padding-left: 24px; padding-right: 24px; }
+    .concepts-grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 500px) { .concepts-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Systems Thinking: Seeing the <em>Underlying Structure</em></h1>
+  <p class="subtitle">Most problems aren't isolated events — they're symptoms of systems. Interconnected loops of cause and effect that repeat until the underlying structure changes. Systems thinking is the discipline of seeing that structure before it sees you.</p>
+  <div class="author-block">
+    <div class="author-avatar">AP</div>
+    <div class="author-info">
+      <span class="author-name">Anthony Prajogo</span>
+      <span class="author-date">April 2026</span>
+    </div>
+  </div>
+</header>
+
+<div class="concepts-section">
+  <div class="section-header-row">
+    <span class="section-header-text">Six Concepts</span>
+    <div class="section-header-line"></div>
+    <span class="section-header-text">Click to expand</span>
+  </div>
+
+  <div class="concepts-grid" id="concepts-grid"></div>
+
+  <div class="takeaway">
+    <span class="takeaway-icon">✦</span>
+    <p class="takeaway-text"><strong>The systems thinker's question:</strong> Not "what caused this?" but "what structure keeps producing this?" — and where in that structure can a small change produce a large shift?</p>
+  </div>
+</div>
+
+<footer>
+  <span class="footer-text">anthony-prajogo.github.io</span>
+  <span class="footer-text">Systems &amp; Strategy · 2026</span>
+</footer>
+
+<script>
+const concepts = [
+  {
+    num: "01", name: "Feedback Loops", tagline: "The engine of system behaviour — reinforcing and balancing.",
+    body: "A feedback loop exists when a system's output influences its own input. Reinforcing loops amplify change — growth begets more growth, or decline accelerates decline. Balancing loops resist change and push toward equilibrium. Most complex behaviour emerges from the interaction between these two types.",
+    example: "A company's reputation attracts talent. Better talent improves the product. A better product improves reputation. This reinforcing loop compounds — which is why market leaders are so hard to displace."
+  },
+  {
+    num: "02", name: "Stocks & Flows", tagline: "What accumulates, and what changes it over time.",
+    body: "Stocks are quantities that accumulate or deplete — money, trust, CO₂. Flows are the rates that change them — income, betrayals, emissions. You can't change a stock instantaneously; you can only change its flows. This is why rapid change is often impossible, and patience is a systems virtue.",
+    example: "A company's reputation is a stock. It builds slowly through consistent delivery and drains rapidly through a single scandal. This asymmetry is why trust takes years to build and moments to destroy."
+  },
+  {
+    num: "03", name: "Delays", tagline: "Why cause and effect are rarely adjacent in time.",
+    body: "In most systems, cause and effect are separated in time. Decisions today take effect months or years later. This creates a dangerous illusion: we act, see no result, act harder, and then watch as the delayed consequences arrive at once. Most policy failures trace to underestimating delays.",
+    example: "A central bank raises interest rates to cool inflation. The effect on spending takes 12–18 months. If the bank keeps raising while waiting, it overshoots — and causes the recession it was trying to prevent."
+  },
+  {
+    num: "04", name: "Leverage Points", tagline: "Where small changes produce large system-wide effects.",
+    body: "Leverage points are places in a system where a small shift produces large changes in behaviour. Donella Meadows ranked them: changing numbers is weak. Changing feedback strength is medium. Changing the system's goals is strong. Changing the paradigm — the shared assumptions underneath — is strongest of all.",
+    example: "Subsidising EVs changes numbers. Mandating them changes rules. But shifting the cultural assumption that car ownership signals status would change behaviour more fundamentally than any policy."
+  },
+  {
+    num: "05", name: "Emergence", tagline: "Properties that appear at the system level, not in parts.",
+    body: "Emergent properties arise from interactions between system components — they can't be predicted by studying parts in isolation. The behaviour of a market, an ecosystem, or a city emerges from collective interaction, not individual actors. This is why reductionist analysis often fails at the systems level.",
+    example: "Traffic jams emerge from individual driving decisions, but no single driver decides to create one. Understanding the jam requires studying the system — density, reaction times, road design — not any individual car."
+  },
+  {
+    num: "06", name: "Mental Models", tagline: "How our map of the system shapes our actions within it.",
+    body: "Our behaviour within a system is shaped by our mental model of how it works. When mental models are inaccurate — and they always are to some degree — interventions fail or backfire. Making models explicit, testing them, and updating them is one of the highest-leverage things a systems thinker can do.",
+    example: "A manager who believes 'people work harder when monitored' installs surveillance. This damages trust, which reduces intrinsic motivation, which requires more monitoring. The mental model created the outcome it assumed."
+  }
+];
+
+const grid = document.getElementById('concepts-grid');
+
+concepts.forEach((c, i) => {
+  const card = document.createElement('div');
+  card.className = 'concept-card';
+  card.innerHTML = `
+    <div class="card-num">${c.num}</div>
+    <div class="card-name">${c.name}</div>
+    <div class="card-tagline">${c.tagline}</div>
+    <span class="card-toggle">+</span>
+    <div class="card-body">
+      <p>${c.body}</p>
+      <div class="card-example">
+        <span class="card-example-label">Real example</span>
+        ${c.example}
+      </div>
+    </div>
+  `;
+  card.addEventListener('click', () => card.classList.toggle('open'));
+  grid.appendChild(card);
+});
+</script>
+</body>
+</html>
